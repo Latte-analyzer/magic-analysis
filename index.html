@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Magic Analysis · 命理全析</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap');
+
+  :root {
+    --gold: #c9a84c;
+    --gold-dim: rgba(201,168,76,0.15);
+    --gold-border: rgba(201,168,76,0.25);
+    --water: #4a9eca;
+    --fire: #e05c00;
+    --wood: #5ba85b;
+    --metal: #b0b8cc;
+    --earth: #c8a85e;
+    --bg: #090912;
+    --bg2: #0d0d1a;
+    --text: #e8e0d0;
+    --muted: rgba(220,210,195,0.55);
+    --pro: #7dd17d;
+    --warn: #f0c060;
+    --danger: #e87070;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Noto Sans SC', 'PingFang SC', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE TEXTURE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px 24px;
+    position: relative;
+    background:
+      radial-gradient(ellipse 60% 50% at 30% 60%, rgba(74,158,202,0.12) 0%, transparent 100%),
+      radial-gradient(ellipse 60% 50% at 70% 40%, rgba(224,92,0,0.12) 0%, transparent 100%),
+      radial-gradient(ellipse 80% 60% at 50% 50%, rgba(201,168,76,0.05) 0%, transparent 100%);
+  }
+
+  /* orbiting rings */
+  .hero-rings {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+  .ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid;
+    animation: spin linear infinite;
+  }
+  .ring-1 { width: 520px; height: 520px; border-color: rgba(201,168,76,0.08); animation-duration: 60s; }
+  .ring-2 { width: 360px; height: 360px; border-color: rgba(74,158,202,0.1); animation-duration: 40s; animation-direction: reverse; }
+  .ring-3 { width: 220px; height: 220px; border-color: rgba(224,92,0,0.1); animation-duration: 25s; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  .hero-badge {
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    border: 1px solid var(--gold-border);
+    padding: 6px 18px;
+    border-radius: 20px;
+    margin-bottom: 32px;
+    background: var(--gold-dim);
+    position: relative; z-index: 1;
+  }
+
+  .hero-symbols {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 28px;
+    position: relative; z-index: 1;
+  }
+  .sym {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 80px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .sym-water {
+    color: var(--water);
+    text-shadow: 0 0 60px rgba(74,158,202,0.6), 0 0 120px rgba(74,158,202,0.2);
+  }
+  .sym-fire {
+    color: var(--fire);
+    text-shadow: 0 0 60px rgba(224,92,0,0.6), 0 0 120px rgba(224,92,0,0.2);
+  }
+  .sym-mid {
+    font-size: 32px;
+    color: var(--gold);
+    text-shadow: 0 0 30px rgba(201,168,76,0.5);
+    opacity: 0.8;
+  }
+
+  .hero-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 48px;
+    font-weight: 700;
+    letter-spacing: 10px;
+    color: var(--text);
+    margin-bottom: 12px;
+    position: relative; z-index: 1;
+  }
+  .hero-title span { color: var(--gold); }
+
+  .hero-sub {
+    font-size: 15px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    margin-bottom: 8px;
+    position: relative; z-index: 1;
+  }
+
+  .hero-divider {
+    width: 160px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 28px auto;
+    position: relative; z-index: 1;
+  }
+
+  .hero-desc {
+    max-width: 560px;
+    font-size: 16px;
+    color: rgba(220,210,195,0.8);
+    line-height: 2;
+    position: relative; z-index: 1;
+    margin-bottom: 48px;
+  }
+
+  .hero-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(201,168,76,0.05));
+    border: 1px solid var(--gold-border);
+    color: var(--gold);
+    padding: 14px 32px;
+    border-radius: 32px;
+    font-size: 15px;
+    letter-spacing: 3px;
+    font-family: 'Noto Serif SC', serif;
+    position: relative; z-index: 1;
+    cursor: default;
+    transition: all 0.3s;
+  }
+  .hero-cta:hover {
+    background: linear-gradient(135deg, rgba(201,168,76,0.25), rgba(201,168,76,0.1));
+    border-color: rgba(201,168,76,0.5);
+    box-shadow: 0 0 40px rgba(201,168,76,0.1);
+  }
+  .cta-cmd {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 16px;
+    color: var(--text);
+    background: rgba(255,255,255,0.07);
+    padding: 4px 12px;
+    border-radius: 6px;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    color: rgba(201,168,76,0.4);
+    font-size: 11px;
+    letter-spacing: 2px;
+    z-index: 1;
+    animation: fadeUpDown 2.5s ease-in-out infinite;
+  }
+  @keyframes fadeUpDown {
+    0%, 100% { opacity: 0.4; transform: translateX(-50%) translateY(0); }
+    50% { opacity: 0.8; transform: translateX(-50%) translateY(6px); }
+  }
+
+  /* ── SECTIONS ── */
+  section {
+    padding: 100px 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-size: 11px;
+    letter-spacing: 5px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 34px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+  .section-sub {
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 600px;
+    line-height: 1.9;
+    margin-bottom: 56px;
+  }
+
+  /* ── TRADITIONS GRID ── */
+  .traditions {
+    background: linear-gradient(180deg, #0a0a16 0%, var(--bg) 100%);
+  }
+
+  .traditions-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+  @media(max-width:900px){ .traditions-grid { grid-template-columns: 1fr 1fr; } }
+  @media(max-width:500px){ .traditions-grid { grid-template-columns: 1fr; } }
+
+  .tradition-card {
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 28px 24px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .tradition-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .tradition-card:hover { border-color: rgba(201,168,76,0.25); transform: translateY(-4px); }
+  .tradition-card:hover::before { opacity: 1; }
+
+  .tc-bazi::before { background: linear-gradient(90deg, var(--earth), var(--gold)); }
+  .tc-astro::before { background: linear-gradient(90deg, var(--water), #9b6dd4); }
+  .tc-tarot::before { background: linear-gradient(90deg, var(--fire), #d4a021); }
+  .tc-tao::before { background: linear-gradient(90deg, var(--wood), var(--water)); }
+
+  .tc-icon { font-size: 36px; margin-bottom: 16px; }
+  .tc-name {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+    letter-spacing: 1px;
+  }
+  .tc-en { font-size: 11px; color: var(--muted); letter-spacing: 2px; margin-bottom: 14px; }
+  .tc-body { font-size: 13px; color: rgba(200,190,175,0.8); line-height: 1.8; }
+
+  /* ── DOMAINS ── */
+  .domains {
+    background: linear-gradient(180deg, var(--bg) 0%, #0a0a16 100%);
+  }
+
+  .domains-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  @media(max-width:700px){ .domains-grid { grid-template-columns: 1fr 1fr; } }
+  @media(max-width:400px){ .domains-grid { grid-template-columns: 1fr; } }
+
+  .domain-card {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 22px 20px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    transition: all 0.3s;
+  }
+  .domain-card:hover { border-color: rgba(201,168,76,0.2); background: rgba(201,168,76,0.03); }
+  .domain-emoji { font-size: 26px; flex-shrink: 0; margin-top: 2px; }
+  .domain-name { font-family: 'Noto Serif SC', serif; font-size: 15px; font-weight: 600; color: var(--gold); margin-bottom: 6px; }
+  .domain-body { font-size: 12px; color: var(--muted); line-height: 1.7; }
+
+  /* ── OUTPUT PREVIEW ── */
+  .output {
+    background: linear-gradient(180deg, #0a0a16 0%, var(--bg) 100%);
+  }
+
+  .output-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+  @media(max-width:700px){ .output-grid { grid-template-columns: 1fr; } }
+
+  .output-card {
+    border-radius: 16px;
+    padding: 32px;
+    border: 1px solid;
+    position: relative;
+    overflow: hidden;
+  }
+  .output-md {
+    border-color: rgba(74,158,202,0.25);
+    background: linear-gradient(135deg, rgba(74,158,202,0.06) 0%, transparent 60%);
+  }
+  .output-html {
+    border-color: rgba(224,92,0,0.25);
+    background: linear-gradient(135deg, rgba(224,92,0,0.06) 0%, transparent 60%);
+  }
+  .output-type {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    padding: 4px 12px;
+    border-radius: 6px;
+    display: inline-block;
+    margin-bottom: 16px;
+  }
+  .output-md .output-type { background: rgba(74,158,202,0.15); color: var(--water); }
+  .output-html .output-type { background: rgba(224,92,0,0.15); color: var(--fire); }
+  .output-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+  .output-body { font-size: 13px; color: var(--muted); line-height: 1.9; margin-bottom: 20px; }
+  .output-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .output-list li {
+    font-size: 12px;
+    color: rgba(200,190,175,0.7);
+    padding-left: 16px;
+    position: relative;
+  }
+  .output-list li::before {
+    content: '◦';
+    position: absolute;
+    left: 0;
+    color: var(--gold);
+  }
+
+  /* slide preview mockup */
+  .slides-preview {
+    margin-top: 24px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .slide-chip {
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(224,92,0,0.1);
+    border: 1px solid rgba(224,92,0,0.2);
+    color: rgba(224,92,0,0.9);
+    letter-spacing: 0.5px;
+  }
+
+  /* ── OBJECTIVITY SECTION ── */
+  .objectivity {
+    background: linear-gradient(180deg, var(--bg) 0%, #0a0a16 100%);
+  }
+
+  .principle-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+  }
+  @media(max-width:800px){ .principle-cards { grid-template-columns: 1fr; } }
+
+  .p-card {
+    border-radius: 14px;
+    padding: 28px 24px;
+    border: 1px solid rgba(255,255,255,0.07);
+    background: rgba(255,255,255,0.02);
+    position: relative;
+    overflow: hidden;
+  }
+  .p-card::after {
+    content: attr(data-num);
+    position: absolute;
+    right: -8px; top: -16px;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 80px;
+    font-weight: 700;
+    color: rgba(201,168,76,0.04);
+    line-height: 1;
+    pointer-events: none;
+  }
+  .p-icon { font-size: 28px; margin-bottom: 14px; }
+  .p-title { font-family: 'Noto Serif SC', serif; font-size: 17px; color: var(--gold); margin-bottom: 10px; }
+  .p-body { font-size: 13px; color: var(--muted); line-height: 1.8; }
+
+  .crisis-levels {
+    display: flex;
+    gap: 12px;
+    margin-top: 40px;
+    flex-wrap: wrap;
+  }
+  .cl {
+    flex: 1;
+    min-width: 200px;
+    border-radius: 10px;
+    padding: 18px 20px;
+    border: 1px solid;
+  }
+  .cl-a { border-color: rgba(232,112,112,0.4); background: rgba(232,112,112,0.06); }
+  .cl-b { border-color: rgba(240,192,96,0.3); background: rgba(240,192,96,0.05); }
+  .cl-c { border-color: rgba(125,209,125,0.3); background: rgba(125,209,125,0.04); }
+  .cl-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+  }
+  .cl-a .cl-badge { background: rgba(232,112,112,0.2); color: var(--danger); }
+  .cl-b .cl-badge { background: rgba(240,192,96,0.2); color: var(--warn); }
+  .cl-c .cl-badge { background: rgba(125,209,125,0.2); color: var(--pro); }
+  .cl-title { font-size: 14px; color: var(--text); margin-bottom: 6px; font-weight: 500; }
+  .cl-body { font-size: 12px; color: var(--muted); line-height: 1.7; }
+
+  /* ── HOW TO USE ── */
+  .how {
+    background: linear-gradient(180deg, #0a0a16 0%, var(--bg) 100%);
+  }
+
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    max-width: 700px;
+    position: relative;
+  }
+  .steps::before {
+    content: '';
+    position: absolute;
+    left: 28px;
+    top: 56px;
+    bottom: 56px;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--gold), rgba(201,168,76,0.1));
+  }
+  .step {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    padding: 24px 0;
+  }
+  .step-num {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--gold-dim);
+    border: 1px solid var(--gold-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--gold);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+  .step-content {}
+  .step-title { font-family: 'Noto Serif SC', serif; font-size: 18px; color: var(--text); margin-bottom: 6px; }
+  .step-body { font-size: 13px; color: var(--muted); line-height: 1.8; }
+  .step-body code {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    background: rgba(201,168,76,0.1);
+    color: var(--gold);
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  /* ── COMPATIBILITY ── */
+  .compat-bar-wrap {
+    margin-top: 48px;
+  }
+  .compat-bar-title {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+  }
+  .compat-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 12px;
+  }
+  .cb-label { font-size: 13px; color: var(--text); width: 100px; flex-shrink: 0; }
+  .cb-track {
+    flex: 1;
+    height: 8px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .cb-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 1.2s ease;
+  }
+  .cb-pct { font-size: 12px; color: var(--gold); width: 36px; text-align: right; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid rgba(201,168,76,0.1);
+    padding: 48px 24px;
+    text-align: center;
+    position: relative; z-index: 1;
+  }
+  .footer-sym {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 32px;
+    color: var(--gold);
+    opacity: 0.4;
+    margin-bottom: 16px;
+    display: block;
+  }
+  .footer-text {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 2;
+    letter-spacing: 1px;
+  }
+  .footer-cmd {
+    margin-top: 20px;
+    display: inline-block;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 15px;
+    color: var(--gold);
+    background: var(--gold-dim);
+    border: 1px solid var(--gold-border);
+    padding: 10px 28px;
+    border-radius: 8px;
+    letter-spacing: 2px;
+  }
+
+  /* ── FADE IN ANIMATION ── */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .fade-in.visible {
+    opacity: 1;
+    transform: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-rings">
+    <div class="ring ring-1"></div>
+    <div class="ring ring-2"></div>
+    <div class="ring ring-3"></div>
+  </div>
+
+  <div class="hero-badge">CLAUDE CODE SKILL · 命理分析助手</div>
+
+  <div class="hero-symbols">
+    <span class="sym sym-water">阴</span>
+    <span class="sym sym-mid">☯</span>
+    <span class="sym sym-fire">阳</span>
+  </div>
+
+  <h1 class="hero-title">Magic <span>Analysis</span></h1>
+  <p class="hero-sub">命理全析 · 四维框架 · 双文件输出</p>
+
+  <div class="hero-divider"></div>
+
+  <p class="hero-desc">
+    综合中国八字命理、西方星座占星、塔罗原型、道家佛教哲学<br>
+    为你和伴侣生成一份客观、深度、可视化的命运分析报告
+  </p>
+
+  <div class="hero-cta">
+    在 Claude Code 中输入 &nbsp;<span class="cta-cmd">/magic-analysis</span>&nbsp; 启动
+  </div>
+
+  <div class="scroll-hint">
+    <span>向下探索</span>
+    <span>↓</span>
+  </div>
+</section>
+
+
+<!-- ═══ 四大传统 ═══ -->
+<section class="traditions">
+  <div class="section-inner">
+    <div class="section-label fade-in">分析框架</div>
+    <h2 class="section-title fade-in">四大传统，交叉验证</h2>
+    <p class="section-sub fade-in">不用单一体系论断，四条脉络相互印证——凡是三条以上指向同一结论，才被纳入报告。</p>
+
+    <div class="traditions-grid">
+      <div class="tradition-card tc-bazi fade-in">
+        <div class="tc-icon">☰</div>
+        <div class="tc-name">八字命理</div>
+        <div class="tc-en">BAZI · FOUR PILLARS</div>
+        <div class="tc-body">
+          旺衰法判断日元强弱，格局定性，喜用神与忌神精确识别。结合大运流年推断人生节点，
+          神煞（文昌、羊刃、桃花、飞刃…）正负两面全部呈现。
+        </div>
+      </div>
+      <div class="tradition-card tc-astro fade-in">
+        <div class="tc-icon">♈</div>
+        <div class="tc-name">西方占星</div>
+        <div class="tc-en">WESTERN ASTROLOGY</div>
+        <div class="tc-body">
+          太阳星座与日元互相验证或揭示张力。外行星过运（2026–2035）具体到每年。
+          合盘分析六分相、对分相等相位，给出兼容度评分及真实理由。
+        </div>
+      </div>
+      <div class="tradition-card tc-tarot fade-in">
+        <div class="tc-icon">🃏</div>
+        <div class="tc-name">塔罗原型</div>
+        <div class="tc-en">TAROT ARCHETYPES</div>
+        <div class="tc-body">
+          每人分配1–2张大阿卡纳，不用通用牌义——直接绑定命盘具体特征解释。
+          今年流年对应塔罗牌，伴侣关系牌，提供原型视角的成长方向。
+        </div>
+      </div>
+      <div class="tradition-card tc-tao fade-in">
+        <div class="tc-icon">☯</div>
+        <div class="tc-name">道佛哲学</div>
+        <div class="tc-en">TAOIST · BUDDHIST</div>
+        <div class="tc-body">
+          道德经、易经卦象为命理结论提供哲学底座。佛教业力视角解读反复出现的人生模式，
+          给出切实的道家化解法（颜色、方位、仪式）而非空洞建议。
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ 分析维度 ═══ -->
+<section class="domains">
+  <div class="section-inner">
+    <div class="section-label fade-in">覆盖维度</div>
+    <h2 class="section-title fade-in">六大人生领域，一个不漏</h2>
+    <p class="section-sub fade-in">每个维度都同时呈现优势与风险，不做选择性展示。</p>
+
+    <div class="domains-grid">
+      <div class="domain-card fade-in">
+        <div class="domain-emoji">🧭</div>
+        <div>
+          <div class="domain-name">格局与性格</div>
+          <div class="domain-body">核心原型是什么，天生的强项在哪里，阴暗面和自我消耗模式是什么。</div>
+        </div>
+      </div>
+      <div class="domain-card fade-in">
+        <div class="domain-emoji">💼</div>
+        <div>
+          <div class="domain-name">事业</div>
+          <div class="domain-body">最适合的职业方向，事业峰值年份，职场潜在危机（是非、背刺、言祸）。</div>
+        </div>
+      </div>
+      <div class="domain-card fade-in">
+        <div class="domain-emoji">💰</div>
+        <div>
+          <div class="domain-name">财运</div>
+          <div class="domain-body">赚钱方式（正财vs偏财），财富积累风格，破财高危年及化解方法。</div>
+        </div>
+      </div>
+      <div class="domain-card fade-in">
+        <div class="domain-emoji">❤️</div>
+        <div>
+          <div class="domain-name">感情与婚姻</div>
+          <div class="domain-body">感情模式与障碍，最佳婚姻时间窗口，关系中反复出现的矛盾点。</div>
+        </div>
+      </div>
+      <div class="domain-card fade-in">
+        <div class="domain-emoji">🏥</div>
+        <div>
+          <div class="domain-name">健康</div>
+          <div class="domain-body">具体器官系统风险（不是泛泛"注意健康"），高危季节，预防方案。</div>
+        </div>
+      </div>
+      <div class="domain-card fade-in">
+        <div class="domain-emoji">🌱</div>
+        <div>
+          <div class="domain-name">人生功课</div>
+          <div class="domain-body">这张命盘反复给你呈现的那一堂课，以及怎么跨过去。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ 输出文件 ═══ -->
+<section class="output">
+  <div class="section-inner">
+    <div class="section-label fade-in">输出内容</div>
+    <h2 class="section-title fade-in">两个文件，拿到即用</h2>
+    <p class="section-sub fade-in">分析结束自动生成，放在你指定的文件夹里。</p>
+
+    <div class="output-grid">
+      <div class="output-card output-md fade-in">
+        <span class="output-type">.md</span>
+        <h3 class="output-title">完整文字报告</h3>
+        <p class="output-body">Markdown格式，约5000–8000字，结构清晰，可直接导入Obsidian、Notion或分享给对方阅读。</p>
+        <ul class="output-list">
+          <li>排盘数据汇总表</li>
+          <li>个人深度解析（各6个维度）</li>
+          <li>合盘分析（天干合/地支组合/兼容度）</li>
+          <li>2026–2035 流年大运年表</li>
+          <li>A/B/C级危机清单与化解方案</li>
+          <li>综合结论与人生功课</li>
+        </ul>
+      </div>
+      <div class="output-card output-html fade-in">
+        <span class="output-type">.html</span>
+        <h3 class="output-title">PPT 风格演示</h3>
+        <p class="output-body">暗色主题幻灯片，9张，支持键盘方向键/触控滑动切换，适合直接展示或截图分享。</p>
+        <div class="slides-preview">
+          <span class="slide-chip">封面</span>
+          <span class="slide-chip">数据总览</span>
+          <span class="slide-chip">四柱命盘</span>
+          <span class="slide-chip">女命解析</span>
+          <span class="slide-chip">男命解析</span>
+          <span class="slide-chip">合盘兼容</span>
+          <span class="slide-chip">流年时间线</span>
+          <span class="slide-chip">危机方案</span>
+          <span class="slide-chip">综合结论</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ 客观性原则 ═══ -->
+<section class="objectivity">
+  <div class="section-inner">
+    <div class="section-label fade-in">分析原则</div>
+    <h2 class="section-title fade-in">客观，是这个分析的底线</h2>
+    <p class="section-sub fade-in">命理分析容易变成"算命摊子"——只说好话，模糊预测。Magic Analysis 的规则恰好相反。</p>
+
+    <div class="principle-cards">
+      <div class="p-card fade-in" data-num="一">
+        <div class="p-icon">⚖️</div>
+        <div class="p-title">强制正负平衡</div>
+        <div class="p-body">每个分析维度都必须同时列出优势和风险。如果某个领域只有正面结论，说明分析不完整——必须重新审视。</div>
+      </div>
+      <div class="p-card fade-in" data-num="二">
+        <div class="p-icon">🔍</div>
+        <div class="p-title">引用具体命理术语</div>
+        <div class="p-body">每个风险结论都要标注是哪个配置导致的，例如「午午自刑」「劫财+羊刃」「伤官见官」，让读者可以自行验证，而非盲信。</div>
+      </div>
+      <div class="p-card fade-in" data-num="三">
+        <div class="p-icon">🎯</div>
+        <div class="p-title">具体而非泛泛</div>
+        <div class="p-body">不说"注意身体健康"，说"心血管系统，高危季节为午未月（6–8月），建议每年这个时段做心电图"。每条建议都要具体到可执行。</div>
+      </div>
+    </div>
+
+    <div class="crisis-levels fade-in">
+      <div class="cl cl-a">
+        <span class="cl-badge">A 级危机</span>
+        <div class="cl-title">高概率 · 高影响</div>
+        <div class="cl-body">需要立即制定行动计划。例：劫财+羊刃年的破财与血光风险，提供具体防范步骤。</div>
+      </div>
+      <div class="cl cl-b">
+        <span class="cl-badge">B 级危机</span>
+        <div class="cl-title">中概率 · 中影响</div>
+        <div class="cl-body">提前预警，给出观察指标。例：职场是非年，需要减少公开批评性发言。</div>
+      </div>
+      <div class="cl cl-c">
+        <span class="cl-badge">C 级危机</span>
+        <div class="cl-title">低概率 · 值得留意</div>
+        <div class="cl-body">提升意识即可，不需要过度焦虑。例：飞刃丧门的离别关，知道就好，做好心理准备。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ 使用方式 ═══ -->
+<section class="how">
+  <div class="section-inner">
+    <div class="section-label fade-in">使用方式</div>
+    <h2 class="section-title fade-in">三步，拿到你的报告</h2>
+    <p class="section-sub fade-in">在 Claude Code 里，一句话启动，其余交给 Claude。</p>
+
+    <div class="steps">
+      <div class="step fade-in">
+        <div class="step-num">一</div>
+        <div class="step-content">
+          <div class="step-title">输入命令</div>
+          <div class="step-body">
+            在 Claude Code 对话框输入 <code>/magic-analysis</code>，Claude 会自动加载分析框架，进入引导流程。
+          </div>
+        </div>
+      </div>
+      <div class="step fade-in">
+        <div class="step-num">二</div>
+        <div class="step-content">
+          <div class="step-title">提供信息</div>
+          <div class="step-body">
+            提供出生日期、时间、性别——或直接把八字排盘 App 的截图丢进去（支持 h5.40dhjien.cn 等主流排盘 App 格式），Claude 会自动识别所有字段。两个人的信息都可以一起提供，Claude 会自动分辨谁是谁。
+          </div>
+        </div>
+      </div>
+      <div class="step fade-in">
+        <div class="step-num">三</div>
+        <div class="step-content">
+          <div class="step-title">获取双文件</div>
+          <div class="step-body">
+            分析完成后，<code>.md</code> 报告和 <code>.html</code> 幻灯片会自动保存到你指定的文件夹（默认：图片所在目录）。直接打开 HTML 文件即可浏览完整的交互式报告。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ FOOTER ═══ -->
+<footer>
+  <span class="footer-sym">☯</span>
+  <div class="footer-text">
+    命理为参考框架，人生走向最终由个人选择决定<br>
+    水善利万物而不争 · 丁火慎独照耀无声
+  </div>
+  <div class="footer-cmd">/magic-analysis</div>
+</footer>
+
+
+<script>
+  // Intersection Observer for fade-in
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => {
+          entry.target.classList.add('visible');
+        }, 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+  // Animate bars on scroll
+  const barObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.querySelectorAll('.cb-fill').forEach(bar => {
+          const w = bar.getAttribute('data-w');
+          if (w) bar.style.width = w;
+        });
+      }
+    });
+  }, { threshold: 0.3 });
+
+  document.querySelectorAll('.compat-bar-wrap').forEach(el => barObserver.observe(el));
+</script>
+
+</body>
+</html>
